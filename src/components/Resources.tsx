@@ -5,17 +5,24 @@ interface ResourcesProps {
   onAddToCart: (id: string, name: string, qty: number) => void
 }
 
-const rarityColors = {
-  common: 'text-rarity-common',
-  uncommon: 'text-rarity-uncommon',
-  rare: 'text-rarity-rare',
-  epic: 'text-rarity-epic',
-  legendary: 'text-rarity-legendary',
-}
-
 function Resources({ onAddToCart }: ResourcesProps) {
   const [search, setSearch] = useState('')
   const [selectedRarity, setSelectedRarity] = useState<string>('all')
+
+  const getRarityColor = (rarity: string) => {
+    const rarityLevel = data.rarityLevels.find(r => r.name === rarity)
+    return rarityLevel ? rarityLevel.color : '#ffffff'
+  }
+
+  const getRarityDisplayName = (rarity: string) => {
+    const rarityLevel = data.rarityLevels.find(r => r.name === rarity)
+    return rarityLevel ? rarityLevel.displayName : rarity.charAt(0).toUpperCase() + rarity.slice(1)
+  }
+
+  const getSkillRank = (rarity: string) => {
+    const rarityLevel = data.rarityLevels.find(r => r.name === rarity)
+    return rarityLevel ? rarityLevel.skillRank : 0
+  }
 
   const filteredResources = useMemo(() => {
     return data.resources.filter((resource) => {
@@ -33,7 +40,7 @@ function Resources({ onAddToCart }: ResourcesProps) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+      <h2 className="text-2xl font-bold mb-4 text-white">
         Resources ({data.resources.length} materials)
       </h2>
 
@@ -44,21 +51,26 @@ function Resources({ onAddToCart }: ResourcesProps) {
           placeholder="Search resources..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full p-3 text-lg border rounded-lg bg-white dark:bg-gray-800 dark:text-white dark:border-gray-700"
+          className="w-full p-3 text-lg border rounded-lg bg-gray-800 text-white border-gray-700"
         />
         
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {['all', 'common', 'uncommon', 'rare', 'epic', 'legendary'].map((rarity) => (
+          {['all', ...data.rarityLevels.map(r => r.name)].map((rarity) => (
             <button
               key={rarity}
               onClick={() => setSelectedRarity(rarity)}
               className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap ${
                 selectedRarity === rarity
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200'
+                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
               }`}
             >
-              {rarity.charAt(0).toUpperCase() + rarity.slice(1)}
+              {rarity === 'all' ? 'All' : getRarityDisplayName(rarity)}
+              {rarity !== 'all' && getSkillRank(rarity) > 0 && (
+                <span className="ml-1 text-xs opacity-75">
+                  (Rank {getSkillRank(rarity)})
+                </span>
+              )}
             </button>
           ))}
         </div>
@@ -71,14 +83,31 @@ function Resources({ onAddToCart }: ResourcesProps) {
           return (
             <div
               key={resource.id}
-              className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md"
+              className="bg-gray-800 rounded-lg p-4 shadow-md"
             >
               <div className="flex justify-between items-start mb-2">
                 <div className="flex-1">
-                  <h3 className={`text-lg font-bold ${rarityColors[resource.rarity as keyof typeof rarityColors]}`}>
-                    {resource.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full border border-gray-400"
+                      style={{ backgroundColor: getRarityColor(resource.rarity) }}
+                    />
+                    <h3 className="text-lg font-bold text-white">
+                      {resource.name}
+                    </h3>
+                    <span 
+                      className="text-xs text-gray-900 px-2 py-1 rounded font-semibold"
+                      style={{ backgroundColor: getRarityColor(resource.rarity) }}
+                    >
+                      {getRarityDisplayName(resource.rarity)}
+                    </span>
+                    {getSkillRank(resource.rarity) > 0 && (
+                      <span className="text-xs bg-orange-900 text-orange-200 px-2 py-1 rounded font-semibold">
+                        Special Projects Rank {getSkillRank(resource.rarity)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-400">
                     Value: {resource.value} credits
                   </p>
                 </div>
@@ -91,11 +120,11 @@ function Resources({ onAddToCart }: ResourcesProps) {
               </div>
               
               {items.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">
+                <div className="mt-2 pt-2 border-t border-gray-700">
+                  <p className="text-xs font-semibold text-gray-400 mb-1">
                     Used in {items.length} items:
                   </p>
-                  <div className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
+                  <div className="text-xs text-gray-300 space-y-1">
                     {items.slice(0, 5).map((item) => (
                       <div key={item.id}>• {item.name}</div>
                     ))}
@@ -111,7 +140,7 @@ function Resources({ onAddToCart }: ResourcesProps) {
       </div>
 
       {filteredResources.length === 0 && (
-        <div className="text-center text-gray-500 dark:text-gray-400 py-8">
+        <div className="text-center text-gray-400 py-8">
           No resources found
         </div>
       )}

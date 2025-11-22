@@ -30,10 +30,10 @@ function Profits({ onAddToCart }: ProfitsProps) {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">
+      <h2 className="text-2xl font-bold mb-4 text-white">
         Top 20 Most Profitable Items
       </h2>
-      <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+      <p className="text-sm text-gray-400 mb-4">
         Sorted by credits per minute (cr/min)
       </p>
 
@@ -44,7 +44,7 @@ function Profits({ onAddToCart }: ProfitsProps) {
           return (
             <div
               key={item.id}
-              className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-md"
+              className="bg-gray-800 rounded-lg p-4 shadow-md"
             >
               <div className="flex items-start gap-3">
                 {/* Rank Badge */}
