@@ -14,9 +14,14 @@ interface ResourceCalc {
   value: number
 }
 
+// Constants for extractor calculations
+const DEFAULT_EXTRACTOR_RATE = 4 // units per hour
+const DEFAULT_PLANETS_PER_RESOURCE = 1
+const MAX_EXTRACTORS_PER_PLANET = 3
+
 function Shopping({ items, onRemove, onUpdateQty }: ShoppingProps) {
-  const [extractorRate, setExtractorRate] = useState(4)
-  const [planetsPerResource, setPlanetsPerResource] = useState(1)
+  const [extractorRate, setExtractorRate] = useState(DEFAULT_EXTRACTOR_RATE)
+  const [planetsPerResource, setPlanetsPerResource] = useState(DEFAULT_PLANETS_PER_RESOURCE)
 
   const resourceCalculations = useMemo(() => {
     const resourceMap = new Map<string, ResourceCalc>()
@@ -65,7 +70,7 @@ function Shopping({ items, onRemove, onUpdateQty }: ShoppingProps) {
   const calculateExtractors = (totalNeeded: number) => {
     // Extractor rate is per hour, calculate how many extractors needed
     const extractorsNeeded = Math.ceil(totalNeeded / extractorRate)
-    const planetsNeeded = Math.ceil(extractorsNeeded / 3) // Assume max 3 extractors per planet
+    const planetsNeeded = Math.ceil(extractorsNeeded / MAX_EXTRACTORS_PER_PLANET)
     return { extractorsNeeded, planetsNeeded }
   }
 
@@ -92,7 +97,9 @@ function Shopping({ items, onRemove, onUpdateQty }: ShoppingProps) {
   }
 
   const clearAll = () => {
-    if (confirm('Clear all items from shopping list?')) {
+    // Simple confirmation before clearing
+    const userConfirmed = window.confirm('Clear all items from shopping list?')
+    if (userConfirmed) {
       items.forEach((item) => onRemove(item.id))
     }
   }
