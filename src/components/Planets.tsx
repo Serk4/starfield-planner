@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import data from '../data/starfield.json'
+import planetsData from '../data/planets.json'
 
 interface PlanetsProps {
   onAddToCart: (id: string, name: string, qty: number) => void
@@ -24,27 +25,53 @@ function Planets({ onAddToCart }: PlanetsProps) {
   const [selectedType, setSelectedType] = useState<string>('all')
   const [selectedLevel, setSelectedLevel] = useState<string>('all')
   const [selectedSystem, setSelectedSystem] = useState<string>('all')
-  const [showResources, setShowResources] = useState(false)
+  const [resourceDisplay, setResourceDisplay] = useState<string>('all')
 
-  const filteredPlanets = useMemo(() => {
-    return data.planets.filter((planet) => {
-      const matchesSearch = planet.name.toLowerCase().includes(search.toLowerCase()) ||
-                          planet.system.toLowerCase().includes(search.toLowerCase())
-      const matchesType = selectedType === 'all' || planet.type === selectedType
-      const matchesLevel = selectedLevel === 'all' || 
-                          (selectedLevel === 'low' && planet.level <= 10) ||
-                          (selectedLevel === 'medium' && planet.level > 10 && planet.level <= 25) ||
-                          (selectedLevel === 'high' && planet.level > 25 && planet.level <= 40) ||
-                          (selectedLevel === 'extreme' && planet.level > 40)
-      const matchesSystem = selectedSystem === 'all' || planet.system === selectedSystem
-      
-      return matchesSearch && matchesType && matchesLevel && matchesSystem
-    })
-  }, [search, selectedType, selectedLevel, selectedSystem])
+  const getResourceName = (resourceId: string) => {
+    const resource = data.resources.find(r => r.id === resourceId)
+    return resource ? resource.name : resourceId
+  }
 
-  const uniqueSystems = useMemo(() => {
-    return [...new Set(data.planets.map(p => p.system))].sort()
-  }, [])
+  const getResourceRarity = (resourceId: string) => {
+    const resource = data.resources.find(r => r.id === resourceId)
+    return resource ? resource.rarity : 'common'
+  }
+
+  const filteredPlanets = planetsData.planets.filter((planet) => {
+    const matchesSearch = planet.name.toLowerCase().includes(search.toLowerCase()) ||
+                        planet.system.toLowerCase().includes(search.toLowerCase())
+    const matchesType = selectedType === 'all' || planet.type === selectedType
+    const matchesLevel = selectedLevel === 'all' || 
+                        (selectedLevel === 'low' && planet.level <= 10) ||
+                        (selectedLevel === 'medium' && planet.level > 10 && planet.level <= 25) ||
+                        (selectedLevel === 'high' && planet.level > 25 && planet.level <= 40) ||
+                        (selectedLevel === 'extreme' && planet.level > 40)
+    const matchesSystem = selectedSystem === 'all' || planet.system === selectedSystem
+    
+    // Resource filter - only show planets that have resources matching the selected rarity
+    const matchesResourceFilter = resourceDisplay === 'all' || 
+      planet.resources.some(resourceId => {
+        const rarity = getResourceRarity(resourceId)
+        switch (resourceDisplay) {
+          case 'common':
+            return rarity === 'common'
+          case 'uncommon':
+            return rarity === 'uncommon'
+          case 'rare':
+            return rarity === 'rare'
+          case 'exotic':
+            return rarity === 'exotic'
+          case 'unique':
+            return rarity === 'unique'
+          default:
+            return true
+        }
+      })
+    
+    return matchesSearch && matchesType && matchesLevel && matchesSystem && matchesResourceFilter
+  })
+
+  const uniqueSystems = [...new Set(planetsData.planets.map(p => p.system))].sort()
 
   const getLevelColor = (level: number) => {
     if (level <= 10) return levelColors.low
@@ -53,12 +80,7 @@ function Planets({ onAddToCart }: PlanetsProps) {
     return levelColors.extreme
   }
 
-  const getResourceName = (resourceId: string) => {
-    const resource = data.resources.find(r => r.id === resourceId)
-    return resource ? resource.name : resourceId
-  }
-
-  const addRandomResources = (planet: typeof data.planets[0]) => {
+  const addRandomResources = (planet: typeof planetsData.planets[0]) => {
     // Add a few random resources from the planet to shopping list
     const selectedResources = planet.resources.slice(0, 3)
     selectedResources.forEach((resourceId: string) => {
@@ -70,7 +92,7 @@ function Planets({ onAddToCart }: PlanetsProps) {
   return (
     <div>
       <h2 className="text-2xl font-bold mb-4 text-white">
-        Planets ({data.planets.length} worlds)
+        Planets ({planetsData.planets.length} worlds)
       </h2>
 
       {/* Search and Filters */}
@@ -125,17 +147,20 @@ function Planets({ onAddToCart }: PlanetsProps) {
             ))}
           </select>
 
-          {/* Toggle Resources */}
-          <button
-            onClick={() => setShowResources(!showResources)}
-            className={`p-2 rounded-lg font-semibold ${
-              showResources
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-            }`}
+          {/* Resource Display Dropdown */}
+          <select
+            value={resourceDisplay}
+            onChange={(e) => setResourceDisplay(e.target.value)}
+            aria-label="Filter planets by resource rarity"
+            className="p-2 border rounded-lg bg-gray-800 text-white border-gray-700"
           >
-            {showResources ? 'Hide Resources' : 'Show Resources'}
-          </button>
+            <option value="all">All Planets</option>
+            <option value="common">Common Resources</option>
+            <option value="uncommon">Uncommon Resources</option>
+            <option value="rare">Rare Resources</option>
+            <option value="exotic">Exotic Resources</option>
+            <option value="unique">Unique Resources</option>
+          </select>
         </div>
       </div>
 
@@ -212,23 +237,43 @@ function Planets({ onAddToCart }: PlanetsProps) {
             )}
 
             {/* Resources */}
-            {showResources && (
-              <div className="mb-2">
-                <span className="font-semibold text-gray-400 text-sm">Resources:</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {planet.resources.map((resourceId, idx) => (
+            <div className="mb-2">
+              <span className="font-semibold text-gray-400 text-sm">Resources:</span>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {planet.resources.map((resourceId, idx) => {
+                  const rarity = getResourceRarity(resourceId)
+                  const rarityColors = {
+                    'common': 'bg-gray-700 text-gray-200',
+                    'uncommon': 'bg-green-900 text-green-200', 
+                    'rare': 'bg-blue-900 text-blue-200',
+                    'exotic': 'bg-purple-900 text-purple-200',
+                    'unique': 'bg-yellow-900 text-yellow-200'
+                  }
+                  const colorClass = rarityColors[rarity as keyof typeof rarityColors] || 'bg-blue-900 text-blue-200'
+                  
+                  // Highlight the target rarity with a border
+                  const isTargetRarity = resourceDisplay !== 'all' && 
+                    ((resourceDisplay === 'common' && rarity === 'common') ||
+                     (resourceDisplay === 'uncommon' && rarity === 'uncommon') ||
+                     (resourceDisplay === 'rare' && rarity === 'rare') ||
+                     (resourceDisplay === 'exotic' && rarity === 'exotic') ||
+                     (resourceDisplay === 'unique' && rarity === 'unique'))
+                  
+                  return (
                     <span
                       key={idx}
-                      className="bg-blue-900 text-blue-200 px-2 py-1 rounded text-xs cursor-pointer hover:bg-blue-800"
+                      className={`${colorClass} px-2 py-1 rounded text-xs cursor-pointer hover:brightness-110 ${
+                        isTargetRarity ? 'ring-2 ring-yellow-400' : ''
+                      }`}
                       onClick={() => onAddToCart(resourceId, getResourceName(resourceId), 1)}
-                      title="Click to add to shopping list"
+                      title={`${rarity.charAt(0).toUpperCase() + rarity.slice(1)} - Click to add to shopping list`}
                     >
                       {getResourceName(resourceId)}
                     </span>
-                  ))}
-                </div>
+                  )
+                })}
               </div>
-            )}
+            </div>
 
             {/* Biomes */}
             <div className="mb-2">

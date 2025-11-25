@@ -8,6 +8,8 @@ interface ResourcesProps {
 function Resources({ onAddToCart }: ResourcesProps) {
   const [search, setSearch] = useState('')
   const [selectedRarity, setSelectedRarity] = useState<string>('all')
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set())
 
   const getRarityColor = (rarity: string) => {
     const rarityLevel = data.rarityLevels.find(r => r.name === rarity)
@@ -28,14 +30,27 @@ function Resources({ onAddToCart }: ResourcesProps) {
     return data.resources.filter((resource) => {
       const matchesSearch = resource.name.toLowerCase().includes(search.toLowerCase())
       const matchesRarity = selectedRarity === 'all' || resource.rarity === selectedRarity
-      return matchesSearch && matchesRarity
+      const matchesCategory = selectedCategory === 'all' || resource.category === selectedCategory
+      return matchesSearch && matchesRarity && matchesCategory
     })
-  }, [search, selectedRarity])
+  }, [search, selectedRarity, selectedCategory])
 
   const usedInItems = (resourceId: string) => {
     return data.items.filter((item) =>
       item.ingredients.some((ing) => ing.resource === resourceId)
     )
+  }
+
+  const toggleResourceExpansion = (resourceId: string) => {
+    setExpandedResources(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(resourceId)) {
+        newSet.delete(resourceId)
+      } else {
+        newSet.add(resourceId)
+      }
+      return newSet
+    })
   }
 
   return (
@@ -74,12 +89,30 @@ function Resources({ onAddToCart }: ResourcesProps) {
             </button>
           ))}
         </div>
+        
+        <div className="flex gap-2">
+          <span className="text-sm text-gray-400 py-2 font-medium">Category:</span>
+          {['all', 'Organic', 'Inorganic'].map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-lg font-semibold whitespace-nowrap ${
+                selectedCategory === category
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+              }`}
+            >
+              {category === 'all' ? 'All Categories' : category}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Resources List */}
       <div className="grid grid-cols-1 gap-3">
         {filteredResources.map((resource) => {
           const items = usedInItems(resource.id)
+          const isExpanded = expandedResources.has(resource.id)
           return (
             <div
               key={resource.id}
@@ -108,7 +141,7 @@ function Resources({ onAddToCart }: ResourcesProps) {
                     )}
                   </div>
                   <p className="text-sm text-gray-400">
-                    Value: {resource.value} credits
+                    Value: {resource.value} credits • {resource.category}
                   </p>
                 </div>
                 <button
@@ -125,11 +158,20 @@ function Resources({ onAddToCart }: ResourcesProps) {
                     Used in {items.length} items:
                   </p>
                   <div className="text-xs text-gray-300 space-y-1">
-                    {items.slice(0, 5).map((item) => (
+                    
+                    {(isExpanded ? items : items.slice(0, 5)).map((item) => (
                       <div key={item.id}>• {item.name}</div>
                     ))}
                     {items.length > 5 && (
-                      <div className="text-gray-500">...and {items.length - 5} more</div>
+                      <button
+                        onClick={() => toggleResourceExpansion(resource.id)}
+                        className="text-blue-400 hover:text-blue-300 text-xs font-medium mt-1"
+                      >
+                        {isExpanded 
+                          ? 'Show less' 
+                          : `Show all ${items.length} items`
+                        }
+                      </button>
                     )}
                   </div>
                 </div>

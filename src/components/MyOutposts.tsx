@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import data from '../data/starfield.json'
+import planetsData from '../data/planets.json'
 
 interface Outpost {
   id: string
@@ -16,9 +17,29 @@ interface MyOutpostsProps {
   onAddOutpost: (outpost: Outpost) => void
   onDeleteOutpost: (outpostId: string) => void
   onUpdateOutpost: (outpostId: string, updatedOutpost: Outpost) => void
+  planetaryHabitationLevel: number
+  specialProjectsLevel: number
+  onUpdatePlanetaryHabitationLevel: (level: number) => void
+  onUpdateSpecialProjectsLevel: (level: number) => void
+  maxOutposts: number
+  remainingOutposts: number
+  isOutpostRequiredForPlans?: (outpostId: string) => boolean
 }
 
-function MyOutposts({ onAddToCart, outposts, onAddOutpost, onDeleteOutpost, onUpdateOutpost }: MyOutpostsProps) {
+function MyOutposts({ 
+  onAddToCart, 
+  outposts, 
+  onAddOutpost, 
+  onDeleteOutpost, 
+  onUpdateOutpost,
+  planetaryHabitationLevel,
+  specialProjectsLevel,
+  onUpdatePlanetaryHabitationLevel,
+  onUpdateSpecialProjectsLevel,
+  maxOutposts,
+  remainingOutposts,
+  isOutpostRequiredForPlans
+}: MyOutpostsProps) {
   const [showAddForm, setShowAddForm] = useState(false)
   const [selectedPlanet, setSelectedPlanet] = useState('')
   const [outpostName, setOutpostName] = useState('')
@@ -26,6 +47,7 @@ function MyOutposts({ onAddToCart, outposts, onAddOutpost, onDeleteOutpost, onUp
   const [extractionRate, setExtractionRate] = useState(1)
   const [editingOutpost, setEditingOutpost] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
 
   const getResourceName = (resourceId: string) => {
     const resource = data.resources.find(r => r.id === resourceId)
@@ -33,14 +55,20 @@ function MyOutposts({ onAddToCart, outposts, onAddOutpost, onDeleteOutpost, onUp
   }
 
   const getPlanetResources = (planetId: string) => {
-    const planet = data.planets.find(p => p.id === planetId)
+    const planet = planetsData.planets.find(p => p.id === planetId)
     return planet?.resources || []
   }
 
   const addOutpost = () => {
     if (!selectedPlanet || !outpostName.trim()) return
 
-    const planet = data.planets.find(p => p.id === selectedPlanet)
+    // Check outpost limit
+    if (outposts.length >= maxOutposts) {
+      alert(`Cannot create outpost: You've reached your limit of ${maxOutposts} outposts. Increase your Planetary Habitation skill level or delete an existing outpost.`)
+      return
+    }
+
+    const planet = planetsData.planets.find(p => p.id === selectedPlanet)
     if (!planet) return
 
     const newOutpost: Outpost = {
@@ -127,21 +155,110 @@ function MyOutposts({ onAddToCart, outposts, onAddOutpost, onDeleteOutpost, onUp
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-white">
-            My Outposts ({outposts.length})
-          </h2>
-          <p className="text-sm text-gray-400">
-            Total Production: {getTotalProductionRate()} units/hour across all outposts
-          </p>
+        <div className="flex items-center space-x-4">
+          <div>
+            <h2 className="text-2xl font-bold text-white">
+              My Outposts ({outposts.length}/{maxOutposts})
+            </h2>
+            <p className="text-sm text-gray-400">
+              {remainingOutposts > 0 ? (
+                <span className="text-green-400">{remainingOutposts} outpost slots remaining</span>
+              ) : (
+                <span className="text-red-400">Outpost limit reached - upgrade Planetary Habitation skill</span>
+              )}
+            </p>
+            <p className="text-xs text-gray-500">
+              Total Production: {getTotalProductionRate()} units/hour across all outposts
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddForm(true)}
+            disabled={remainingOutposts <= 0}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg whitespace-nowrap"
+          >
+            + Add Outpost
+          </button>
         </div>
         <button
-          onClick={() => setShowAddForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg"
+          onClick={() => setShowSettings(!showSettings)}
+          className={`text-white font-bold py-2 px-4 rounded-lg transition-colors ${
+            showSettings 
+              ? 'bg-blue-600 hover:bg-blue-700' 
+              : 'bg-gray-600 hover:bg-gray-700'
+          }`}
         >
-          + Add Outpost
+          ⚙️ Skills {showSettings ? '▼' : '▶'}
         </button>
       </div>
+
+      {/* Skills Settings Panel */}
+      {showSettings && (
+        <div className="bg-gray-800 rounded-lg p-6 shadow-lg mb-6 border border-gray-700">
+          <h3 className="text-lg font-bold mb-4 text-white flex items-center">
+            ⚙️ Skill Configuration
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">
+                Planetary Habitation Level
+              </label>
+              <p className="text-xs text-gray-400 mb-3">
+                Base: 8 outposts + 4 per level (Max Level 4 = 24 outposts)
+              </p>
+              <div className="flex items-center space-x-3">
+                <select
+                  value={planetaryHabitationLevel}
+                  onChange={(e) => onUpdatePlanetaryHabitationLevel(parseInt(e.target.value))}
+                  aria-label="Planetary Habitation skill level"
+                  className="p-2 border rounded bg-gray-700 text-white border-gray-600"
+                >
+                  <option value={0}>Level 0 (8 outposts)</option>
+                  <option value={1}>Level 1 (12 outposts)</option>
+                  <option value={2}>Level 2 (16 outposts)</option>
+                  <option value={3}>Level 3 (20 outposts)</option>
+                  <option value={4}>Level 4 (24 outposts)</option>
+                </select>
+                <span className="text-gray-400 text-sm">
+                  Current Max: {maxOutposts} outposts
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-gray-300 mb-2">
+                Special Projects Level
+              </label>
+              <p className="text-xs text-gray-400 mb-3">
+                Enables advanced manufacturing recipes
+              </p>
+              <div className="flex items-center space-x-3">
+                <select
+                  value={specialProjectsLevel}
+                  onChange={(e) => onUpdateSpecialProjectsLevel(parseInt(e.target.value))}
+                  aria-label="Special Projects skill level"
+                  className="p-2 border rounded bg-gray-700 text-white border-gray-600"
+                >
+                  <option value={0}>Level 0</option>
+                  <option value={1}>Level 1</option>
+                  <option value={2}>Level 2</option>
+                  <option value={3}>Level 3</option>
+                  <option value={4}>Level 4</option>
+                </select>
+                <span className="text-gray-400 text-sm">
+                  {specialProjectsLevel === 0 ? 'Basic recipes only' : `Advanced recipes available`}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 p-3 bg-blue-900/30 rounded border border-blue-700">
+            <p className="text-sm text-blue-200">
+              💡 <strong>Tip:</strong> You can adjust these skill levels at any time to experiment with different configurations or when you increase your skills in-game.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Add Outpost Form */}
       {showAddForm && (
@@ -160,7 +277,7 @@ function MyOutposts({ onAddToCart, outposts, onAddOutpost, onDeleteOutpost, onUp
                 className="w-full p-3 border rounded-lg bg-gray-700 text-white border-gray-600"
               >
                 <option value="">Select a planet...</option>
-                {data.planets.map(planet => (
+                {planetsData.planets.map(planet => (
                   <option key={planet.id} value={planet.id}>
                     {planet.name} ({planet.system})
                   </option>
@@ -212,20 +329,31 @@ function MyOutposts({ onAddToCart, outposts, onAddOutpost, onDeleteOutpost, onUp
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {outposts.map((outpost) => (
-            <div
-              key={outpost.id}
-              className="bg-gray-800 rounded-lg p-6 shadow-md border-l-4 border-green-500"
-            >
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-lg font-bold text-white">
-                    {outpost.name}
-                  </h3>
-                  <p className="text-sm text-gray-400">
-                    {outpost.planetName} • Created {outpost.dateCreated}
-                  </p>
-                </div>
+          {outposts.map((outpost) => {
+            const isRequiredForPlans = isOutpostRequiredForPlans?.(outpost.id) || false
+            return (
+              <div
+                key={outpost.id}
+                className={`bg-gray-800 rounded-lg p-6 shadow-md border-l-4 ${
+                  isRequiredForPlans ? 'border-yellow-500' : 'border-green-500'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-bold text-white flex items-center">
+                      {outpost.name}
+                      {isRequiredForPlans && (
+                        <span className="ml-2 text-yellow-400 text-sm" title="Used in manufacturing plans">
+                          🔗 In Use
+                        </span>
+                      )}
+                    </h3>
+                    <p className="text-sm text-gray-400">
+                      <span className="font-bold text-gray-300 bg-gray-600 px-2 py-1 rounded">
+                        {outpost.planetName}
+                      </span> • Created {outpost.dateCreated}
+                    </p>
+                  </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => addAllExtractedToCart(outpost)}
@@ -360,7 +488,8 @@ function MyOutposts({ onAddToCart, outposts, onAddOutpost, onDeleteOutpost, onUp
                 </button>
               )}
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
