@@ -172,8 +172,18 @@ function App() {
         }`}
       >
         <div className={`transition-all duration-300 ${isHeaderCollapsed ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100'}`}>
-          <h1 className="text-2xl font-bold text-center">Starfield Planner</h1>
-          <p className="text-xs text-center text-gray-400 mt-1">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold">Starfield Planner</h1>
+            <div className="flex items-center justify-center gap-2 mt-1">
+              <span className="bg-orange-600 text-orange-100 text-xs font-bold px-2 py-1 rounded-full animate-pulse">
+                🚧 WORK IN PROGRESS
+              </span>
+              <span className="bg-blue-600 text-blue-100 text-xs font-semibold px-2 py-1 rounded-full">
+                BETA
+              </span>
+            </div>
+          </div>
+          <p className="text-xs text-center text-gray-400 mt-2">
             Unofficial fan-made tool - Not affiliated with Bethesda
           </p>
         </div>
