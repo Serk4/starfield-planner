@@ -11,11 +11,6 @@ function Resources({ onAddToCart }: ResourcesProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [expandedResources, setExpandedResources] = useState<Set<string>>(new Set())
 
-  const getRarityColor = (rarity: string) => {
-    const rarityLevel = data.rarityLevels.find(r => r.name === rarity)
-    return rarityLevel ? rarityLevel.color : '#ffffff'
-  }
-
   const getRarityDisplayName = (rarity: string) => {
     const rarityLevel = data.rarityLevels.find(r => r.name === rarity)
     return rarityLevel ? rarityLevel.displayName : rarity.charAt(0).toUpperCase() + rarity.slice(1)
@@ -122,15 +117,13 @@ function Resources({ onAddToCart }: ResourcesProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <div 
-                      className="w-3 h-3 rounded-full border border-gray-400"
-                      style={{ backgroundColor: getRarityColor(resource.rarity) }}
+                      className={`w-3 h-3 rounded-full border border-gray-400 bg-rarity-${resource.rarity}`}
                     />
                     <h3 className="text-lg font-bold text-white">
                       {resource.name}
                     </h3>
                     <span 
-                      className="text-xs text-gray-900 px-2 py-1 rounded font-semibold"
-                      style={{ backgroundColor: getRarityColor(resource.rarity) }}
+                      className={`text-xs text-gray-900 px-2 py-1 rounded font-semibold bg-rarity-${resource.rarity}`}
                     >
                       {getRarityDisplayName(resource.rarity)}
                     </span>

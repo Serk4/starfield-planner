@@ -108,11 +108,6 @@ function ManufacturePlans({ onAddToCart, outposts = [], maxOutposts = 24, remain
     return data.items.find(i => i.id === itemId)
   }
 
-  const getRarityColor = (rarity: string) => {
-    const rarityLevel = data.rarityLevels.find(r => r.name === rarity)
-    return rarityLevel ? rarityLevel.color : '#ffffff'
-  }
-
   const getPlanetsWithResource = (resourceId: string) => {
     return planetsData.planets.filter(planet => 
       planet.resources.includes(resourceId)
@@ -130,14 +125,16 @@ function ManufacturePlans({ onAddToCart, outposts = [], maxOutposts = 24, remain
     const item = getItemInfo(itemId)
     if (!item) return
 
-    const assignments: ResourcePlanetAssignment[] = item.ingredients.map(ingredient => ({
-      resourceId: ingredient.resource,
-      resourceName: getResourceName(ingredient.resource),
-      qty: ingredient.qty,
-      selectedPlanetId: null,
-      selectedPlanetName: null,
-      availablePlanets: getPlanetsWithResource(ingredient.resource)
-    }))
+    const assignments: ResourcePlanetAssignment[] = item.ingredients
+      .filter(ingredient => ingredient.resource) // Only process resource-based ingredients
+      .map(ingredient => ({
+        resourceId: ingredient.resource!,
+        resourceName: getResourceName(ingredient.resource!),
+        qty: ingredient.qty,
+        selectedPlanetId: null,
+        selectedPlanetName: null,
+        availablePlanets: getPlanetsWithResource(ingredient.resource!)
+      }))
 
     setResourceAssignments(assignments)
     setPlanName(`${item.name} Manufacturing Plan`)
@@ -794,8 +791,7 @@ function ManufacturePlans({ onAddToCart, outposts = [], maxOutposts = 24, remain
                     <div className="flex items-center space-x-2 text-sm text-gray-400">
                       <span>Target:</span>
                       <span 
-                        className="font-medium"
-                        style={{ color: item ? getRarityColor(item.rarity) : '#ffffff' }}
+                        className={`font-medium ${item ? `text-rarity-${item.rarity}` : 'text-rarity-common'}`}
                       >
                         {plan.targetItemName}
                       </span>

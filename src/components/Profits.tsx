@@ -94,7 +94,7 @@ function Profits({ onAddToCart }: ProfitsProps) {
                           key={idx}
                           className="text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded"
                         >
-                          {getResourceName(ing.resource)} x{ing.qty}
+                          {ing.resource ? getResourceName(ing.resource) : `Item: ${ing.item}`} x{ing.qty}
                         </span>
                       ))}
                     </div>

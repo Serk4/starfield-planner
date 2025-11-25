@@ -1,1 +1,15 @@
 /* Custom styles for the app */
+
+/* Rarity color utilities */
+.text-rarity-common   { color: #ffffff; }
+.text-rarity-uncommon { color: #00ff00; }
+.text-rarity-rare     { color: #0099ff; }
+.text-rarity-exotic   { color: #cc00ff; }
+.text-rarity-unique   { color: #ff6600; }
+
+/* Rarity background utilities */
+.bg-rarity-common   { background-color: #ffffff; }
+.bg-rarity-uncommon { background-color: #00ff00; }
+.bg-rarity-rare     { background-color: #0099ff; }
+.bg-rarity-exotic   { background-color: #cc00ff; }
+.bg-rarity-unique   { background-color: #ff6600; }

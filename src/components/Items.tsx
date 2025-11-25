@@ -49,10 +49,6 @@ function Items({ onAddToCart }: ItemsProps) {
     return data.resources.find((r) => r.id === resourceId)?.name || 'Unknown'
   }
 
-  const getItemName = (itemId: string) => {
-    return data.items.find((i) => i.id === itemId)?.name || 'Unknown'
-  }
-
   const toggleExpand = (itemId: string) => {
     setExpandedItem(expandedItem === itemId ? null : itemId)
   }
@@ -177,18 +173,24 @@ function Items({ onAddToCart }: ItemsProps) {
                     <button
                       onClick={() => {
                         item.ingredients.forEach(ing => {
-                          onAddToCart(ing.resource, getResourceName(ing.resource), ing.qty)
+                          if (ing.resource) {
+                            onAddToCart(ing.resource, getResourceName(ing.resource), ing.qty)
+                          }
                         })
                       }}
                       className="bg-green-600 hover:bg-green-700 text-white text-xs font-bold py-1 px-3 rounded"
-                      title="Add all ingredients to shopping list"
+                      title="Add all resource ingredients to shopping list"
                     >
                       + Add All Ingredients
                     </button>
                   </div>
                   <div className="space-y-2">
                     {item.ingredients.map((ing, idx) => {
-                      const resource = data.resources.find(r => r.id === ing.resource)
+                      const resource = ing.resource ? data.resources.find(r => r.id === ing.resource) : null
+                      const item = ing.item ? data.items.find(i => i.id === ing.item) : null
+                      const name = resource?.name || item?.name || 'Unknown'
+                      const isResource = ing.resource !== undefined
+                      
                       return (
                         <div key={idx} className="flex justify-between items-center bg-gray-700 p-3 rounded">
                           <div className="flex items-center gap-3">
@@ -198,8 +200,14 @@ function Items({ onAddToCart }: ItemsProps) {
                                 style={{ backgroundColor: getRarityColor(resource.rarity) }}
                               />
                             )}
+                            {item && (
+                              <div 
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: getRarityColor(item.rarity) }}
+                              />
+                            )}
                             <span className="text-white font-medium">
-                              {getResourceName(ing.resource)}
+                              {name} {!isResource && '(Crafted Item)'}
                             </span>
                             {resource && (
                               <span 
@@ -209,16 +217,26 @@ function Items({ onAddToCart }: ItemsProps) {
                                 {getRarityDisplayName(resource.rarity)}
                               </span>
                             )}
+                            {item && (
+                              <span 
+                                className="text-xs px-2 py-1 rounded font-semibold text-gray-900"
+                                style={{ backgroundColor: getRarityColor(item.rarity) }}
+                              >
+                                {getRarityDisplayName(item.rarity)}
+                              </span>
+                            )}
                           </div>
                           <div className="flex items-center gap-3">
                             <span className="font-bold text-yellow-400">x{ing.qty}</span>
-                            <button
-                              onClick={() => onAddToCart(ing.resource, getResourceName(ing.resource), ing.qty)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded"
-                              title="Add to shopping list"
-                            >
-                              +
-                            </button>
+                            {isResource && (
+                              <button
+                                onClick={() => onAddToCart(ing.resource!, name, ing.qty)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1 px-2 rounded"
+                                title="Add to shopping list"
+                              >
+                                +
+                              </button>
+                            )}
                           </div>
                         </div>
                       )
