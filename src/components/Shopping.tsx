@@ -33,18 +33,21 @@ function Shopping({ items, onRemove, onUpdateQty }: ShoppingProps) {
       if (itemData) {
         // It's a crafted item - sum up all ingredients
         itemData.ingredients.forEach((ing) => {
-          const resource = data.resources.find((r) => r.id === ing.resource)
-          if (resource) {
-            const existing = resourceMap.get(ing.resource)
-            if (existing) {
-              existing.total += ing.qty * cartItem.qty
-            } else {
-              resourceMap.set(ing.resource, {
-                id: ing.resource,
-                name: resource.name,
-                total: ing.qty * cartItem.qty,
-                value: resource.value,
-              })
+          // Only process resource-based ingredients, skip item-based ones
+          if (ing.resource) {
+            const resource = data.resources.find((r) => r.id === ing.resource)
+            if (resource) {
+              const existing = resourceMap.get(ing.resource)
+              if (existing) {
+                existing.total += ing.qty * cartItem.qty
+              } else {
+                resourceMap.set(ing.resource, {
+                  id: ing.resource,
+                  name: resource.name,
+                  total: ing.qty * cartItem.qty,
+                  value: resource.value,
+                })
+              }
             }
           }
         })
