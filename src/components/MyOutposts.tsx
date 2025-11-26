@@ -154,40 +154,51 @@ function MyOutposts({
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
+      <div className="mb-6">
+        {/* Header with Skills on the right */}
+        <div className="flex justify-between items-start mb-3">
           <div>
             <h2 className="text-2xl font-bold text-white">
               My Outposts ({outposts.length}/{maxOutposts})
             </h2>
-            <p className="text-sm text-gray-400">
+            <div className="flex items-center space-x-4 text-sm">
               {remainingOutposts > 0 ? (
-                <span className="text-green-400">{remainingOutposts} outpost slots remaining</span>
+                <span className="text-green-400">{remainingOutposts} slots left</span>
               ) : (
-                <span className="text-red-400">Outpost limit reached - upgrade Planetary Habitation skill</span>
+                <span className="text-red-400">At limit</span>
               )}
-            </p>
-            <p className="text-xs text-gray-500">
-              Total Production: {getTotalProductionRate()} units/hour across all outposts
-            </p>
+              <span className="text-gray-400">•</span>
+              <span className="text-gray-400">{getTotalProductionRate()} units/hr total</span>
+            </div>
           </div>
+          
+          {/* Skills Hamburger Menu - positioned on right */}
           <button
-            onClick={() => setShowAddForm(true)}
-            disabled={remainingOutposts <= 0}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-bold py-2 px-4 rounded-lg whitespace-nowrap"
+            onClick={() => setShowSettings(!showSettings)}
+            className={`flex items-center space-x-2 px-3 py-2 rounded-lg font-medium text-sm transition-colors ${
+              showSettings 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                : 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+            }`}
+            title={showSettings ? 'Hide skill settings' : 'Configure skills'}
           >
-            + Add Outpost
+            {/* Hamburger Icon */}
+            <div className="w-3 h-3 flex flex-col justify-center space-y-0.5">
+              <div className={`w-full h-0.5 bg-current transition-transform ${showSettings ? 'rotate-45 translate-y-1' : ''}`}></div>
+              <div className={`w-full h-0.5 bg-current transition-opacity ${showSettings ? 'opacity-0' : ''}`}></div>
+              <div className={`w-full h-0.5 bg-current transition-transform ${showSettings ? '-rotate-45 -translate-y-1' : ''}`}></div>
+            </div>
+            <span>Skills</span>
           </button>
         </div>
+        
+        {/* Add Outpost Button - smaller, below title */}
         <button
-          onClick={() => setShowSettings(!showSettings)}
-          className={`text-white font-bold py-2 px-4 rounded-lg transition-colors ${
-            showSettings 
-              ? 'bg-blue-600 hover:bg-blue-700' 
-              : 'bg-gray-600 hover:bg-gray-700'
-          }`}
+          onClick={() => setShowAddForm(true)}
+          disabled={remainingOutposts <= 0}
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed text-white font-semibold py-1.5 px-3 rounded-md text-sm"
         >
-          ⚙️ Skills {showSettings ? '▼' : '▶'}
+          + Add Outpost
         </button>
       </div>
 

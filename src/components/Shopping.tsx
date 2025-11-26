@@ -150,6 +150,7 @@ function Shopping({ items, onRemove, onUpdateQty }: ShoppingProps) {
                     </p>
                   </div>
                   <input
+                    title="itemqty"
                     type="number"
                     min="1"
                     value={item.qty}
@@ -225,6 +226,7 @@ function Shopping({ items, onRemove, onUpdateQty }: ShoppingProps) {
                   Extractor Rate (units/hour):
                 </label>
                 <input
+                  title="extractorRate"
                   type="number"
                   min="1"
                   value={extractorRate}
@@ -237,6 +239,7 @@ function Shopping({ items, onRemove, onUpdateQty }: ShoppingProps) {
                   Planets per Resource:
                 </label>
                 <input
+                  title="planetsPerResource"
                   type="number"
                   min="1"
                   value={planetsPerResource}

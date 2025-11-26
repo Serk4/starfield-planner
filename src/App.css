@@ -1,5 +1,19 @@
-/* Custom styles for the app */
+@import "tailwindcss";
 
+/* Custom styles for the app */
+/* Smooth page transitions */
+.view-transition {
+  view-transition-name: page;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Safe area for iPhone notch */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  main { padding-bottom: max(5rem, env(safe-area-inset-bottom)); }
+}
 /* Rarity color utilities */
 .text-rarity-common   { color: #ffffff; }
 .text-rarity-uncommon { color: #00ff00; }

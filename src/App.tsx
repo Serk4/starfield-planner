@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import './App.css'
+import MobileBottomNav from './components/MobileBottomNav'
 import Resources from './components/Resources'
 import Items from './components/Items'
 import Profits from './components/Profits'
@@ -187,30 +188,52 @@ function App() {
             Unofficial fan-made tool - Not affiliated with Bethesda
           </p>
         </div>
-        
-        {/* Tab Navigation - Always visible */}
-        <nav className={`bg-gray-700 overflow-x-auto ${isHeaderCollapsed ? 'mt-0' : 'mt-4 -mx-4'}`}>
-          <div className="flex">
-            {(['outposts', 'manufacture', 'shopping', 'profits', 'planets', 'resources', 'items'] as Tab[]).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`flex-1 min-w-[80px] py-3 px-2 text-sm font-semibold uppercase transition-colors ${
-                  activeTab === tab
-                    ? 'bg-gray-800 text-white border-b-4 border-blue-500'
-                    : 'text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                {tab === 'outposts' ? 'My Outposts' : tab === 'manufacture' ? 'Manufacture Plans' : tab}
-                {tab === 'shopping' && shoppingList.length > 0 && (
-                  <span className="ml-2 bg-red-500 text-white text-xs rounded-full px-2 py-0.5">
-                    {shoppingList.length}
-                  </span>
-                )}
-              </button>
-            ))}
+
+        {/*Replace your current header/tabs with this:*/}
+ 
+          <div className="flex items-center justify-between px-4 py-3">
+            {/* <h1 className="text-xl font-bold text-cyan-400">Starfield Planner</h1> */}
+            {/* Optional: tiny skill indicators or menu button */}
+          </div>
+
+        {/* Tab Navigation - Desktop optimized */}
+        <nav className={`bg-gray-700 hidden md:block ${isHeaderCollapsed ? 'mt-0' : 'mt-4 -mx-4'}`}>
+          <div className="flex justify-center">
+            <div className="flex bg-gray-800 rounded-lg p-1 m-2 shadow-lg">
+              {(['outposts', 'manufacture', 'shopping', 'profits', 'planets', 'resources', 'items'] as Tab[]).map((tab) => {
+                const tabLabels = {
+                  'outposts': 'My Outposts',
+                  'manufacture': 'Plans',
+                  'shopping': 'Shopping Cart',
+                  'profits': 'Profits',
+                  'planets': 'Planets',
+                  'resources': 'Resources',
+                  'items': 'Items'
+                }
+                
+                return (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2.5 rounded-md font-semibold text-sm transition-all duration-200 whitespace-nowrap relative ${
+                      activeTab === tab
+                        ? 'bg-blue-600 text-white shadow-lg transform scale-105'
+                        : 'text-gray-300 hover:bg-gray-700 hover:text-white hover:scale-102'
+                    }`}
+                  >
+                    {tabLabels[tab]}
+                    {tab === 'shopping' && shoppingList.length > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 min-w-[20px] text-center">
+                        {shoppingList.length}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </nav>
+        
       </header>
 
       {/* Tab Content */}
@@ -246,11 +269,13 @@ function App() {
             onUpdateQty={updateShoppingQty}
           />
         )}
-        {activeTab === 'profits' && <Profits onAddToCart={addToShoppingList} />}
-        {activeTab === 'planets' && <Planets onAddToCart={addToShoppingList} />}
+        {activeTab === 'profits'   && <Profits onAddToCart={addToShoppingList} />}
+        {activeTab === 'planets'   && <Planets onAddToCart={addToShoppingList} />}
         {activeTab === 'resources' && <Resources onAddToCart={addToShoppingList} />}
-        {activeTab === 'items' && <Items onAddToCart={addToShoppingList} />}
+        {activeTab === 'items'     && <Items onAddToCart={addToShoppingList} />}
       </main>
+
+      <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
 
       {/* Disclaimer */}
       <footer className="fixed bottom-0 w-full bg-gray-800 text-gray-400 text-xs text-center py-2">
